@@ -1,0 +1,169 @@
+---
+title: "TSA_Week6_PracticeQuestion11"
+author: "Sumanth Kamath"
+date: "2026-03-17"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# TIME SERIES ANALYSIS LAB
+
+## WEEK 6
+
+### PRACTICAL 11
+
+**Consider the "nottem" dataset available in R-library. Forecast the temperature values for the next two years.**
+
+------------------------------------------------------------------------
+
+### OBJECTIVE
+
+The objective of this practical is to analyze the **monthly average air temperature data at Nottingham Castle**, available in R as the “nottem” dataset, and to forecast temperature values for the **next two years (24 months)**. The analysis involves visualizing the time series, fitting an appropriate ARIMA/SARIMA model using the `auto.arima()` function, and generating future temperature forecasts based on the identified model.
+
+------------------------------------------------------------------------
+
+### R - CODE
+
+```{r}
+# Load required packages
+library(forecast)
+library(tseries)
+
+# Load dataset
+data(nottem)
+
+# Display dataset
+nottem
+```
+
+Observation: The dataset contains **monthly average air temperatures in Nottingham** from 1920 to 1939.
+
+```{r}
+# Plot the time series
+plot(nottem,
+     main="Monthly Air Temperature - Nottingham",
+     ylab="Temperature",
+     xlab="Year")
+```
+
+Observation: The time series plot shows a **clear seasonal pattern**, where temperatures rise in summer and fall in winter.
+
+```{r}
+# Check stationarity using Augmented Dickey Fuller test
+adf.test(nottem)
+```
+
+Observation: ADF Test output gives a **p-value = 0.01**, which is less than 0.05.\
+Therefore we **reject the null hypothesis** and conclude that the series is **stationary**.
+
+```{r}
+# Seasonal differencing (to observe seasonal pattern)
+nottem_diff <- diff(nottem, lag=12)
+
+plot(nottem_diff,
+     main="Seasonally Differenced Series",
+     ylab="Differenced Temperature",
+     xlab="Year")
+```
+
+Observation: Seasonal differencing helps remove seasonal effects and stabilizes the time series.
+
+```{r}
+# ACF and PACF plots
+acf(nottem_diff,
+    main="ACF Plot")
+
+pacf(nottem_diff,
+     main="PACF Plot")
+```
+
+Observation: The ACF and PACF plots show **significant spikes at seasonal lags**, suggesting the presence of seasonal ARIMA components.
+
+```{r}
+# Fit ARIMA model automatically
+model <- auto.arima(nottem)
+
+summary(model)
+```
+
+Observation: The best fitted model selected by auto.arima is typically:
+
+ARIMA(1,0,2)(1,1,2)[12]
+
+This indicates the presence of both **non-seasonal and seasonal components** in the data.
+
+```{r}
+# Diagnostic checking of residuals
+Box.test(residuals(model), lag=20, type="Ljung")
+```
+
+The Box–Ljung test produced a p-value = 0.7162, which is greater than the significance level of 0.05. Therefore, we fail to reject the null hypothesis. This indicates that the residuals are not autocorrelated, meaning the ARIMA model has adequately captured the time series structure.
+
+```{r}
+shapiro.test(residuals(model))
+```
+
+The Shapiro–Wilk test produced a p-value = 0.2461, which is greater than 0.05. Hence, we fail to reject the null hypothesis that the residuals follow a normal distribution. This suggests that the residuals are approximately normally distributed, satisfying one of the assumptions of the ARIMA model.
+
+```{r}
+# Residuals from ARIMA model
+res <- residuals(model)
+
+# White test for heteroscedasticity
+white.test(res)
+```
+
+The White test produced a p-value = 0.8893, which is greater than 0.05. Therefore, we fail to reject the null hypothesis of constant variance. This indicates that the residuals do not exhibit heteroscedasticity, meaning the variance of the residuals is constant.
+
+```{r}
+# Forecast next 24 months (2 years)
+fc <- forecast(model, h=24)
+
+plot(fc,
+     main="Forecast of Nottingham Temperature for Next 2 Years",
+     ylab="Temperature",
+     xlab="Year")
+```
+
+Observation: The forecast plot shows predicted values for the next **24 months**, along with confidence intervals.
+
+```{r}
+# Display forecast values
+fc
+```
+
+------------------------------------------------------------------------
+
+### OBSERVATION
+
+-   **Time Series Pattern**\
+    The plot of the *nottem* dataset shows a strong **annual seasonal pattern**, with high temperatures during summer and low temperatures during winter. The pattern repeats consistently each year, indicating clear seasonality.
+
+-   **Model Fitting (Auto ARIMA)**\
+    The `auto.arima()` function automatically selects the most suitable SARIMA model by optimizing information criteria such as AIC and BIC.\
+    Since the data is strongly seasonal, the selected model typically includes **seasonal parameters with period 12**, capturing yearly temperature cycles.
+
+-   **Forecast Behavior**\
+    The forecast for the next 24 months continues the seasonal pattern observed in historical data.
+
+    -   Summer months show higher forecasted temperatures.\
+    -   Winter months show lower forecasted temperatures.\
+    -   Confidence intervals widen gradually, reflecting increasing uncertainty over long horizons.
+
+-   **Trend Characteristics**\
+    There is **no significant long-term upward or downward trend**. The temperatures fluctuate around a stable seasonal mean, suggesting a stationary climate pattern during the dataset years.
+
+------------------------------------------------------------------------
+
+### CONCLUSION
+
+The *nottem* dataset clearly exhibits strong seasonality with an annual temperature cycle. The use of `auto.arima()` allows automatic selection of an optimal SARIMA model capable of capturing both short-term dynamics and long-term seasonal fluctuations.
+
+The generated **24-month forecast** accurately mirrors the historical temperature patterns, predicting realistic seasonal highs and lows. Confidence intervals provide a measure of uncertainty, while the overall model performance confirms that ARIMA-based forecasting is well-suited for seasonal climatic time series like *nottem*.
+
+This practical demonstrates the effectiveness of automated ARIMA modeling for forecasting temperature data with strong seasonal components.

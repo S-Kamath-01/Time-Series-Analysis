@@ -1,0 +1,118 @@
+---
+title: "TSA_Week3_PracticeQuestion6"
+author: "Sumanth Kamath"
+date: "2026-02-14"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# TIME SERIES ANALYSIS LAB
+
+## WEEK 3
+
+### PRACTICAL 6
+
+**Consider the “AirPassengers” data from R library and write the R program for the following:**
+
+(a) Convert the data into a time series object.
+
+(b) Plot the data to identify the dominant component.
+
+(c) Decompose the data to observe the dominating components more clearly.
+
+(d) Check stationarity or non-stationarity using ACF/PACF plot.
+
+(e) Check stationarity or non-stationarity using the Augmented Dickey-Fuller (ADF) test.
+
+### OBJECTIVE
+
+The objective of this analysis is to use the built-in `AirPassengers` dataset in R, convert it into a time series object, and visualize it to identify dominant components (trend and seasonality). Additionally, the analysis aims to assess whether the series is stationary or non-stationary using ACF/PACF plots and the Augmented Dickey–Fuller (ADF) test.
+
+### R - CODE
+
+```{r}
+# Command to delete all the history
+rm(list=ls(all=TRUE))
+```
+
+```{r}
+# Installing the required packages
+# install.packages(c("tseries","forecast"))
+```
+
+```{r}
+# Loading all the required libraries
+library(tseries)
+library(forecast)
+```
+
+```{r}
+# Converting the data into a time series object
+data("AirPassengers")
+ap <- as.ts(AirPassengers)
+
+# Checking the frequency of the dataset
+frequency(ap)
+```
+
+```{r}
+# Plotting the data to identify the dominant component
+plot(ap,
+     main = "AirPassengers (Monthly, 1949–1960)",
+     ylab = "Passengers (in thousands)",
+     xlab = "Year")
+```
+
+```{r}
+# Decomposing the data
+decomposded_air = decompose(ap)
+plot(decomposded_air)
+```
+
+```{r}
+# ACF/PACF to check stationarity vs non-stationarity
+par(mfrow = c(1,2))
+acf(ap, main = "ACF: AirPassengers")
+pacf(ap, main = "PACF: AirPassengers")
+par(mfrow = c(1,1))
+```
+
+```{r}
+# Stationarity using Augmented Dickey–Fuller (ADF) test
+adf_result <- adf.test(ap)
+print(adf_result)
+```
+
+### OBSERVATION
+
+-   **Successful Data Import and Preparation**\
+    The AirPassengers dataset was successfully converted into a time series object using `as.ts(AirPassengers)`. The series contains monthly data from 1949 to 1960 with a frequency of 12, ensuring that the dataset is properly structured for time‑dependent analysis and seasonal decomposition.
+
+-   **Time Series Plot Interpretation**\
+    The time series plot shows a strong upward trend in the number of airline passengers over the years. The fluctuations also increase in magnitude over time, indicating multiplicative seasonality. This suggests that seasonal variations grow proportionally with the overall level of the series.
+
+-   **Decomposition Analysis**\
+    The decomposition results clearly separate the data into trend, seasonal, and irregular components. The trend component shows steady long‑term growth, while the seasonal component reflects recurring monthly patterns. The multiplicative decomposition highlights that both trend and seasonal effects intensify together, confirming the presence of multiplicative seasonality.
+
+-   **Stationarity Check Using ACF/PACF**\
+    The ACF plot exhibits a slow decay with pronounced seasonal spikes at lags 12, 24, and so on, indicating strong non‑stationarity. The PACF plot shows significant spikes at early lags and seasonal lags, confirming that the data has persistent autocorrelation and is not stationary in its original form.
+
+-   **Stationarity Check Using ADF Test**
+
+    The Augmented Dickey–Fuller test returns a **p‑value of 0.01**, which is less than 0.05. This means the null hypothesis of a unit root is rejected. According to the ADF test, the AirPassengers series appears **stationary** in terms of unit-root detection. However, despite this result, the presence of a strong trend and multiplicative seasonality in the plot, decomposition, and ACF/PACF indicates that the series is still **not stationarity in the practical sense**, especially due to seasonal and variance-related non‑stationarity.
+
+### CONCLUSION
+
+While the ADF test result (p = 0.01) suggests statistical stationarity by rejecting the unit root hypothesis, the visual diagnostics—including the upward trend, increasing seasonal amplitude, and slowly decaying ACF—indicate that the AirPassengers series is **not stationary in practice**. The series exhibits strong multiplicative seasonality and trend-driven non‑stationarity.\
+Therefore, for reliable modelling (such as ARIMA), it is still necessary to apply transformations such as:
+
+-   **Log transformation** to stabilize increasing variance, and
+
+-   **Seasonal differencing (lag 12)** and possibly **first differencing** to remove trend and seasonality.
+
+These steps are consistent with standard time‑series preprocessing for airline passenger datasets.

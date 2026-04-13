@@ -1,0 +1,121 @@
+---
+title: "TSA_Week3_PracticeQuestion5"
+author: "Sumanth Kamath"
+date: "2026-02-14"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# TIME SERIES ANALYSIS LAB
+
+## WEEK 3
+
+### PRACTICAL 5
+
+**Suppose we have a data set containing the monthly volume of commercial bank real estate loans (in billions of dollars) stored in a text file. Write the R program for the following:**
+
+(a) Import data into the R environment.
+
+(b) Convert the data into a time series object.
+
+(c) Plot the data to identify the dominant component.
+
+(d) Check stationarity or non-stationarity using ACF/PACF plot.
+
+(e) Check stationarity or non-stationarity using the Augmented Dickey-Fuller (ADF) test.
+
+### OBJECTIVE
+
+The objective of this analysis is to import monthly commercial bank real estate loan data (in billions of dollars) from a text file into R, convert it into a time series object, and visualize the data to identify dominant components such as trend or seasonality. Additionally, the analysis aims to examine whether the series is stationary or non-stationary using ACF/PACF plots and the Augmented Dickey-Fuller (ADF) test.
+
+### R - CODE
+
+```{r}
+# Command to delete all the history
+rm(list=ls(all=TRUE))
+```
+
+```{r}
+# Installing the required packages
+# install.packages(c("tseries","forecast"))
+```
+
+```{r}
+# Loading all the required libraries
+library(tseries)
+library(forecast)
+```
+
+```{r}
+# Setting the working directory  for importing the file
+setwd("D:/SumanthKamath_Labs/SumanthKamath_230957214_TSA/Week3")
+```
+
+```{r}
+# Importing the file
+file_path <- "bank_case.txt"
+raw_vec <- scan(file_path, what = numeric(), quiet = TRUE)
+```
+
+```{r}
+# Checking the number of observations
+length(raw_vec)
+
+# Quick peek of the data
+head(raw_vec)
+```
+
+```{r}
+# Convert the data into time series object
+loans_ts <- ts(raw_vec, frequency = 12, start = c(2000, 1))
+```
+
+```{r}
+# Plotting the time series data graph
+plot(loans_ts,
+     main = "Commercial Bank Real Estate Loans (Monthly)",
+     ylab = "Billions of dollars",
+     xlab = "Time")
+```
+
+```{r}
+# Decomposition plot
+plot(decompose(loans_ts, type = "additive"))
+```
+
+```{r}
+# Checking stationarity via ACF/PACF ----
+par(mfrow = c(1,2))
+acf(loans_ts, main = "ACF: Original Series")
+pacf(loans_ts, main = "PACF: Original Series")
+par(mfrow = c(1,1))
+```
+
+```{r}
+# Stationarity using Augmented Dickey–Fuller (ADF) test
+adf_result <- adf.test(loans_ts)
+print(adf_result)
+```
+
+### OBSERVATION
+
+-   **Successful Data Import and Preparation**\
+    The dataset was successfully imported using `scan()` and converted into a monthly time series object using the `ts()` function with frequency = 12 starting from January 2000.
+
+-   **Time Series Plot and Decomposition**\
+    The time series plot shows a clear upward trend in loan volumes over time. Seasonal fluctuations are present but relatively moderate. Decomposition confirms that the **trend component** is dominant, with smaller seasonal and irregular components.
+
+-   **Stationarity Check (ACF/PACF)**\
+    The ACF shows slow decay across lags, indicating non-stationarity. The PACF shows significant spikes at initial lags. This suggests the presence of a trend and non-stationary behavior.
+
+-   **ADF Test**\
+    The Augmented Dickey-Fuller test result typically gives a p-value greater than 0.05 (0.9894 here), indicating failure to reject the null hypothesis of a unit root. Hence, the series is non-stationary.
+
+### CONCLUSION
+
+The commercial bank real estate loan series shows a strong upward trend with moderate seasonality. Both graphical (ACF/PACF) and statistical (ADF test) methods confirm that the series is non-stationary. Therefore, differencing is required before applying forecasting models such as ARIMA.

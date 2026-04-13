@@ -1,0 +1,143 @@
+---
+title: "TSA_Week2_PracticeQuestion3"
+author: "Sumanth Kamath"
+date: "2026-02-06"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 
+
+# TIME SERIES ANALYSIS LAB
+
+## WEEK 2
+
+### PRACTICAL 3
+
+**Consider the following datasets from the R library and write R code to decompose the time-series data into its trend, seasonal, and residual components. Furthermore, identify the dominating component(s) in the dataset:**
+
+(a) Nottem data
+
+(b) AirPassengers data
+
+### OBJECTIVE
+
+The objective of this analysis is to load the Nottem and AirPassengers datasets from the R library, visualize the time series, and decompose them into trend, seasonal, and residual components using classical decomposition methods. The aim is to identify the dominant components influencing each time series.
+
+### R - CODE
+
+```{r}
+# Command to delete all the R history
+rm(list=ls(all=TRUE))
+```
+
+```{r}
+# Loading all the required libraries
+library(datasets)
+library(stats)
+```
+
+```{r}
+# (a)Nottem Data
+```
+
+```{r}
+# Loading the nottem dataset
+data(nottem)
+```
+
+```{r}
+# Plot the time series
+plot(nottem,
+     main = "Nottem Monthly Average Temperatures",
+     ylab = "Temperature",
+     xlab = "Year")
+```
+
+```{r}
+# Classical additive decomposition
+nottem_decomp <- decompose(nottem, type = "additive")
+```
+
+```{r}
+# Plot the decomposed components
+plot(nottem_decomp)
+```
+
+```{r}
+# (b) AirPassengers data
+```
+
+```{r}
+# Loading the air passengers dataset
+data("AirPassengers")
+```
+
+```{r}
+# Plot the time series
+plot(AirPassengers,
+     main = "AirPassengers Data",
+     ylab = "Number of Passengers",
+     xlab = "Year")
+```
+
+```{r}
+# Classical multiplicative decomposition
+ap_decomp <- decompose(AirPassengers, type = "multiplicative")
+```
+
+```{r}
+# Plot the decomposed components
+plot(ap_decomp)
+```
+
+### OBSERVATION
+
+#### **(a) Nottem Data**
+
+-   **Successful Data Import and Preparation**\
+    The Nottem dataset was successfully loaded from the datasets library and plotted as a time series. The data represents monthly average air temperature values stored as a time series object.
+
+-   **Decomposition Analysis**\
+    Classical additive decomposition was applied using the `decompose()` function. The resulting components include trend, seasonal, and random (residual) components.
+
+-   **Trend Component**\
+    The trend component shows relatively stable long-term behavior without significant upward or downward movement, indicating no strong long-term trend.
+
+-   **Seasonal Component**\
+    A strong and consistent seasonal pattern is observed, with temperatures repeating similar cycles each year. Seasonal variation is clearly the dominant component.
+
+-   **Residual Component**\
+    The residual component contains minor irregular fluctuations after removing trend and seasonality.
+
+-   **Dominating Component**\
+    The seasonal component is the dominant feature of the Nottem dataset, as periodic variations are strong and consistent across the entire series.
+
+#### **(b) AirPassengers Data**
+
+-   **Successful Data Import and Preparation**\
+    The AirPassengers dataset was loaded successfully and plotted. It represents monthly airline passenger numbers over time.
+
+-   **Decomposition Analysis**\
+    Classical multiplicative decomposition was applied using the `decompose()` function. This is appropriate because seasonal fluctuations increase as the level of the series increases.
+
+-   **Trend Component**\
+    A strong upward trend is observed, showing continuous growth in passenger numbers over time.
+
+-   **Seasonal Component**\
+    A clear repeating seasonal pattern exists, with regular peaks and troughs each year. The magnitude of seasonal variation increases with the trend level.
+
+-   **Residual Component**\
+    The residual component captures random variations not explained by trend or seasonality.
+
+-   **Dominating Component**\
+    Both trend and seasonal components dominate the AirPassengers dataset, with strong long-term growth and pronounced multiplicative seasonal effects.
+
+### CONCLUSION
+
+The Nottem dataset is dominated by a strong seasonal component with minimal long-term trend, making it a stable seasonal time series. In contrast, the AirPassengers dataset exhibits both a strong upward trend and pronounced multiplicative seasonality, where seasonal effects increase with the overall level of the series. Both datasets demonstrate clear seasonal behavior but differ in trend strength and decomposition type.

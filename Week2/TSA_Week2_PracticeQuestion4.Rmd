@@ -1,0 +1,158 @@
+---
+title: "TSA_Week2_PracticeQuestion4"
+author: "Sumanth Kamath"
+date: "2026-02-06"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 
+
+# TIME SERIES ANALYSIS LAB
+
+## WEEK 2
+
+### PRACTICAL 4
+
+**For a given dataset of the US Population (in millions), write the R code to:**
+
+(a) Import the data as a time series object.
+
+(b) Identify the dominating component(s) in the data set.
+
+(c) Apply a square root transformation to the original data set.
+
+(d) Estimate the linear trend present in the data set
+
+(e) Remove the estimated linear trend from the data set
+
+    ![](Screenshot%202026-02-07%20093623.png)
+
+### OBJECTIVE
+
+The objective of this analysis is to import the given US Population dataset into the R environment and convert it into a time series object. The analysis includes identifying the dominant components of the time series, applying a square root transformation to stabilize variation, estimating the linear trend using regression, and removing the estimated trend to obtain a detrended series for further analysis.
+
+### R - CODE
+
+```{r}
+# Command to delete all the R history
+rm(list=ls(all=TRUE))
+# To show the population in millions
+options(scipen = 999, big.mark = ",")
+```
+
+```{r}
+# Loading Required Libraries
+library(datasets)
+library(stats)
+library(readxl)
+library(forecast)
+```
+
+```{r}
+# Importing the excel file containing US Population data
+us_population <- read_excel("D:/SumanthKamath_Labs/SumanthKamath_230957214_TSA/Week2/us_population.xlsx")
+View(us_population)
+```
+
+```{r}
+# Importing the data as a time series object
+
+# Data starts from 1970 and ends at 1990 (annual data)
+us_pop_ts <- ts(us_population$Population,
+                start = 1970,
+                end = 1990,
+                frequency = 1)
+```
+
+```{r}
+# Plotting the time series graph
+plot(us_pop_ts/1000000,
+     main = "US Population Time Series",
+     ylab = "Population (In Millions)",
+     xlab = "Year",
+     type = "o")
+```
+
+```{r}
+# Applying a square root transformation to the original data set
+
+us_pop_sqrt <- sqrt(us_pop_ts)
+```
+
+```{r}
+# Plotting transformed data
+plot(us_pop_sqrt,
+     main = "Square Root Transformed US Population",
+     ylab = "Sqrt(Population)",
+     xlab = "Year",
+     type="o")
+```
+
+```{r}
+# (d) Estimating the linear trend present in the data set
+
+# Create time index
+time_index <- time(us_pop_ts)
+
+# Fit linear trend model
+trend_model <- lm(us_pop_ts ~ time_index)
+
+# Display model summary
+summary(trend_model)
+
+# Estimated trend values
+trend_estimate <- ts(trend_model$fitted.values, start=1970, frequency = 1)
+
+# Plot original data with trend line
+plot(us_pop_ts,
+     main = "US Population with Linear Trend",
+     ylab = "Population",
+     xlab = "Year",
+     type = "o")
+lines(trend_estimate, col = "red", lwd = 2)
+```
+
+```{r}
+# Removing the estimated linear trend from the data set
+
+# Detrended series
+us_pop_detrended <- us_pop_ts - trend_estimate
+
+# Plot detrended data
+plot(us_pop_detrended,
+     main = "Detrended US Population Time Series",
+     ylab = "Population (Detrended)",
+     xlab = "Year",
+     type = "o")
+abline(h = 0, col = "blue", lty = 2)
+```
+
+### OBSERVATION
+
+-   **Successful Data Import and Preparation**\
+    The US population dataset was successfully imported from an Excel file using the `readxl` package and converted into a time series object using the `ts()` function. The data spans from 1970 to 1990 and represents annual observations, indicated by a frequency of 1.
+
+-   **Nature and Frequency of the Time Series**\
+    The dataset is an annual time series where each observation corresponds to the population value for a specific year. Since the frequency is 1, no seasonal component is expected in the data.
+
+-   **Dominating Component**\
+    The time series plot shows a strong increasing pattern over time, indicating that the **trend component** is dominant. There is no visible seasonal variation due to the yearly sampling frequency.
+
+-   **Square Root Transformation**\
+    A square root transformation was applied to the original dataset to reduce scale effects and stabilize variance. The transformed series retains the overall increasing pattern while compressing larger values.
+
+-   **Linear Trend Estimation**\
+    A linear regression model was fitted using time as the independent variable. The fitted trend line shows a steady increase in population over the years, confirming the presence of a strong linear trend component.
+
+-   **Detrending the Series**\
+    The estimated linear trend was removed from the original data to produce a detrended series. The resulting series fluctuates around zero, indicating that the main trend component has been successfully removed.
+
+### CONCLUSION
+
+The US population time series exhibits a strong upward linear trend, which is the dominant component of the dataset. Due to annual observations, no seasonal pattern is present. After applying a square root transformation and estimating the linear trend, the detrended series shows only minor irregular variations around the mean.

@@ -1,0 +1,256 @@
+---
+title: "TSA_Week5_PracticeQuestion9"
+author: "Sumanth Kamath"
+date: "2026-03-17"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# TIME SERIES ANALYSIS LAB
+
+## WEEK 5
+
+### PRACTICAL 9
+
+**Suppose we have a dataset containing the monthly volume of commercial bank real estate loans (in billions of dollars) stored in a text file. Forecast the volume of commercial loans for the next 20 months.**
+
+------------------------------------------------------------------------
+
+### OBJECTIVE
+
+The objective of this analysis is to model the monthly commercial bank real estate loan dataset and forecast the next 20 months using appropriate ARIMA modeling techniques. The process includes stationarity testing, model identification, parameter estimation, diagnostic checking, and forecasting.
+
+------------------------------------------------------------------------
+
+### R - CODE
+
+```{r}
+# Remove all objects from the environment
+rm(list=ls(all=TRUE))
+```
+
+```{r}
+# Load necessary libraries
+library(tseries)  # For stationarity test (ADF)
+library(forecast) # For ARIMA model and forecasting
+library(readr)    # For reading CSV files
+```
+
+```{r}
+# Step 1: Load the data
+# Read the data from the bank_case.txt file
+bank_case <- read_csv("D:/SumanthKamath_Labs/SumanthKamath_230957214_TSA/Week3/bank_case.txt", col_names = FALSE)
+bank_case <- bank_case$X1  # Extracting the data column (assuming it's the first column)
+bank_case  # Display the first few values of the data
+```
+
+```{r}
+# Step 2: Convert the data into a time series object
+# Convert the raw data into a time series object (assuming monthly data)
+bank_data_ts <- as.ts(bank_case)
+bank_data_ts  # Display the time series object
+```
+
+```{r}
+# Step 3: Plot the data
+# Visualizing the data to see the trend and any possible seasonal patterns
+plot(bank_data_ts,
+     main="Commercial Bank Real Estate Loan Data",
+     xlab="Months",
+     ylab="Loans in Billions in Dollar",
+     lwd=2)
+axis(1, seq(0,70,5), seq(0,70,5))  # Custom x-axis for months
+```
+
+```{r}
+# Step 4: Check if the series is stationary
+# ACF (AutoCorrelation Function) plot helps us understand the serial correlation in the data
+acf(bank_data_ts,
+    main="ACF Plot of Commercial Bank Real Estate Loan Data",
+    lag.max=10, ylim=c(-1,1))
+
+# PACF (Partial AutoCorrelation Function) plot helps to check for partial correlations
+pacf(bank_data_ts,
+     main="PACF Plot of Commercial Bank Real Estate Loan Data",
+     lag.max=10, ylim=c(-1,1))
+
+# Perform ADF (Augmented Dickey-Fuller) test for stationarity
+adf.test(bank_data_ts)  # p-value < 0.05 suggests that the data is stationary
+```
+
+```{r}
+# Step 5: Conversion of non-stationary data to stationary (Differencing)
+# If the data is not stationary, we can make it stationary by differencing
+# First, take the first difference
+bank_data_ts_d1 <- diff(bank_data_ts)
+adf.test(bank_data_ts_d1)  # Re-test for stationarity after differencing
+
+# If the first difference is still non-stationary, we take the second difference
+bank_data_ts_d2 <- diff(bank_data_ts_d1)
+adf.test(bank_data_ts_d2)  # Check again for stationarity after second differencing
+
+# Plot the ACF and PACF for the differenced data (after second differencing)
+acf(bank_data_ts_d2,
+    main="ACF Plot of Differenced Data (2nd Difference)",
+    lag.max=10, ylim=c(-1,1))
+
+pacf(bank_data_ts_d2,
+     main="PACF Plot of Differenced Data (2nd Difference)",
+     lag.max=10, ylim=c(-1,1))
+```
+
+```{r}
+# Step 6: Model Identification (Choose the ARIMA model order)
+# We now try different ARIMA models with different combinations of p, d, q (AR, differencing, MA)
+# The AIC (Akaike Information Criterion) will help us select the best model with the lowest AIC
+
+# Try different ARIMA model orders and check AIC values for comparison
+bank_fit1 <- arima(bank_data_ts, order=c(0,2,0))
+bank_fit1$aic  # AIC value
+
+bank_fit2 <- arima(bank_data_ts, order=c(1,2,1))
+bank_fit2$aic  # AIC value
+
+bank_fit3 <- arima(bank_data_ts, order=c(0,2,2))
+bank_fit3$aic  # AIC value
+
+bank_fit4 <- arima(bank_data_ts, order=c(1,2,2))
+bank_fit4$aic  # AIC value
+
+bank_fit5 <- arima(bank_data_ts, order=c(1,2,0))
+bank_fit5$aic  # AIC value
+
+bank_fit6 <- arima(bank_data_ts, order=c(0,2,1))
+bank_fit6$aic  # AIC value
+
+# **Interpretation of AIC:**
+# We choose the model with the minimum AIC because it balances model fit and complexity.
+# In this case, the model with order c(0,2,1) has the lowest AIC, so it is selected.
+```
+
+```{r}
+# Step 7: Model Estimation
+# Fit the ARIMA(0,2,1) model and estimate its parameters
+bank_fit_Est <- arima(bank_data_ts, order=c(0,2,1), method="ML")
+bank_fit_Est  # Display the model summary
+```
+
+```{r}
+# Step 8: Diagnostic Checking of the Model
+# Checking the residuals to ensure that the model assumptions are satisfied
+
+res <- bank_fit_Est$residuals  # Extract the residuals
+
+# Plot the residuals
+plot(res,
+     main="Residuals of Commercial Bank Real Estate Loan Data",
+     type='l')
+abline(h=0)  # Add a horizontal line at zero
+
+# 1. Normality Check (Shapiro-Wilk Test)
+shapiro.test(res)  # p-value > 0.05 suggests normality
+
+# QQ Plot for normality check
+qqnorm(res)
+qqline(res, col="red")
+
+# 2. Serial Autocorrelation Check (Box-Pierce Test)
+Box.test(res, lag=10, type="Box-Pierce")  # p-value > 0.05 suggests no significant autocorrelation
+
+# Plot ACF and PACF of residuals to ensure no autocorrelation is left
+acf(res)
+pacf(res)
+
+# 3. Heteroscedasticity Check (White's Test for heteroscedasticity)
+white.test(res)  # Test for constant variance in residuals
+
+# Plot ACF and PACF of squared residuals to detect heteroscedasticity
+acf(res^2)
+pacf(res^2)
+```
+
+```{r}
+# Step 9: Forecasting
+# Use the ARIMA(0,2,1) model to forecast the next 20 months
+bank_fit_Forecast <- forecast(bank_fit_Est, h=20)
+bank_fit_Forecast  # Display forecast results
+```
+
+```{r}
+# Plot the forecasted values
+plot(bank_fit_Forecast,
+     main="Forecast of Commercial Bank Real Estate Loan Data for Next 20 Months",
+     xlab="Months",
+     ylab="Loans in Billions in Dollar",
+     lwd=2)
+axis(1, seq(0,90,5), seq(0,90,5))  # Custom x-axis for months
+```
+
+------------------------------------------------------------------------
+
+### OBSERVATION
+
+-   **Data Loading and Time Series Conversion**\
+    The dataset containing monthly commercial bank real estate loan volumes (in billions of dollars) is successfully imported from the text file and converted into a time series object using `as.ts()`. The series represents monthly observations.
+
+-   **Visualization of the Series**\
+    The time series plot shows a clear upward trend in loan volumes over time.\
+    There is no strong visual evidence of seasonality.\
+    The dominant component appears to be the **trend component**, indicating non-stationary behavior.
+
+-   **Stationarity Check (ACF/PACF and ADF Test)**\
+    The ACF plot of the original series shows slow decay across lags, which is a typical sign of non-stationarity.\
+    The PACF plot also shows significant spikes at initial lags.\
+    The Augmented Dickey–Fuller (ADF) test produces a p-value greater than 0.05, meaning we fail to reject the null hypothesis of a unit root.\
+    Therefore, the original series is non-stationary.
+
+-   **Differencing to Achieve Stationarity**\
+    First differencing is applied and the ADF test is repeated.\
+    Since the first differenced series still indicates non-stationarity, a second differencing is performed.\
+    After second differencing:
+
+    -   The series fluctuates around a constant mean.
+    -   The ADF test gives a p-value less than 0.05.
+
+    This confirms that the series becomes stationary after second differencing (d = 2).
+
+-   **Model Identification using AIC**\
+    Several ARIMA models with different (p, d, q) combinations are fitted and compared using the Akaike Information Criterion (AIC).\
+    The model with the lowest AIC value is selected as the best model.\
+    Among the tested models, **ARIMA(0,2,1)** has the minimum AIC and is therefore selected.
+
+-   **Model Estimation**\
+    The ARIMA(0,2,1) model is fitted using the Maximum Likelihood (ML) method.\
+    The estimated MA(1) parameter is statistically significant, indicating its contribution to explaining the structure in the differenced series.
+
+-   **Diagnostic Checking**\
+    Residual analysis is performed to validate model adequacy:
+
+    -   The residual time plot shows random fluctuations around zero.
+    -   The Shapiro–Wilk test gives p-value \> 0.05, indicating approximate normality.
+    -   The Box–Pierce test gives p-value \> 0.05, suggesting no significant residual autocorrelation.
+    -   ACF and PACF of residuals show no significant spikes.
+    -   White’s test indicates constant variance (no heteroscedasticity).
+
+    These results confirm that residuals behave like white noise.
+
+-   **Forecasting**\
+    The fitted ARIMA(0,2,1) model is used to forecast the next 20 months.\
+    The forecast plot shows projected loan volumes along with confidence intervals, providing an estimate of future trends.
+
+------------------------------------------------------------------------
+
+### CONCLUSION
+
+The commercial bank real estate loan series exhibits a strong upward trend and is non-stationary in its original form. Both graphical (ACF/PACF) and statistical (ADF test) methods confirm the presence of a unit root.
+
+After applying second-order differencing (d = 2), the series becomes stationary. Based on AIC comparison among candidate models, ARIMA(0,2,1) is selected as the most appropriate model.
+
+Residual diagnostics confirm that the model satisfies assumptions of normality, independence, and constant variance, indicating a good model fit.
+
+Using the fitted ARIMA(0,2,1) model, reliable forecasts for the next 20 months are generated. This demonstrates that ARIMA modeling is effective for forecasting commercial bank real estate loan volumes after properly transforming the series to achieve stationarity.

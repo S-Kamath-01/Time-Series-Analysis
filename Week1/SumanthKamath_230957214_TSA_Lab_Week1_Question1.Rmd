@@ -1,0 +1,105 @@
+---
+title: "SumanthKamath_230957214_TSA_Lab_Week1_PracticeQuestion1"
+author: "Sumanth Kamath"
+date: "2026-01-24"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# TIME SERIES ANALYSIS LAB
+
+## WEEK 1
+
+### PRACTICAL 1
+
+**For a given dataset of the US Population (in millions), perform the following tasks in the R environment:**
+
+(a) Entered the data into an Excel file.
+
+(b) Import the data from the Excel file into the R working directory.
+
+(c) Call the suitable package from the R library for time series analysis.
+
+(d) Convert the dataset into a time series object and explain the nature of the data in terms of its sampling frequency.
+
+(e) Plot the data and identify the dominating component(s) in the data set.
+
+[Data: 3929214, 5308483, 7239881, 9638453, 12860702, 17063353, 23191876, 31443321, 38558371, 50189209, 62979666, 76212168, 92228496, 106021537, 123202624, 132164569, 151325798, 179323175, 203302031, 226542203, 248709873]
+
+### OBJECTIVE
+
+The objective of this analysis is to enter the given data into an Excel file, import it into the R environment, and apply appropriate time series techniques. The dataset is converted into a time series object to understand its frequency and structure, followed by graphical visualization to identify the dominant components influencing the behavior of the time series.
+
+### R - CODE
+
+```{r}
+# Command to delete all the R history
+rm(list=ls(all=TRUE))
+```
+
+```{r}
+# Install all the required packages
+# install.packages("readxl")
+# install.packages("forecast")
+```
+
+```{r}
+# Loading all the required libraries
+library(readxl)
+library(stats)
+library(forecast)
+```
+
+```{r}
+# Importing the data from the excel file made by inserting the population data
+us_population <- read_excel("us_population.xlsx")
+View(us_population)
+```
+
+```{r}
+# Loading the required data from the excel file
+data = us_population$US_Population_Millions
+data
+```
+
+```{r}
+# Converting the dataset into a time series object
+# Explaining the nature of the data in terms of its sampling frequency.
+us_pop <- data/1e6
+pop_ts <- ts(us_pop, frequency = 1)
+print(pop_ts)
+```
+
+```{r}
+# Plotting the graph 
+plot(pop_ts,
+     main = "US Population Time Series",
+     ylab = "Population (In Millions)",
+     xlab = "Year",
+     col = "blue",
+     lwd = 2)
+```
+
+### OBSERVATION
+
+-   **Successful Data Import and Preparation**\
+    The US population data was successfully entered into an Excel file and imported into the R environment using the `readxl` package. The dataset was extracted correctly as a numeric vector and converted into a usable format for time series analysis.
+
+-   **Nature and Frequency of the Time Series**\
+    The dataset was converted into a time series object using the `ts()` function with a frequency of **1**, indicating that the data is **annual (yearly)** in nature. Each observation represents the population count for a specific year, making it a **low-frequency time series**.
+
+-   **Trend Analysis**\
+    The time series plot shows a **strong upward trend** throughout the entire period. The US population increases consistently over time, indicating long-term growth.
+
+-   **Dominant Component**\
+    The **trend component** is the dominant feature of the dataset. There is **no visible seasonal component** because the data is annual and population values typically do not exhibit seasonal fluctuations.\
+    Additionally, there is **no significant cyclical or irregular variation** observed in the plot.
+
+### CONCLUSION
+
+The US population time series shows a strong increasing trend over time, indicating consistent long-term population growth. No seasonal or cyclical patterns are observed in the data. The trend component is the dominant feature of the time series.

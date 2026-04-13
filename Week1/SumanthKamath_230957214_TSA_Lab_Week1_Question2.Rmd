@@ -1,0 +1,101 @@
+---
+title: "SumanthKamath_230957214_TSA_Lab_Week1_PracticeQuestion2"
+author: "Sumanth Kamath"
+date: "2026-02-06"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 
+
+# TIME SERIES ANALYSIS LAB
+
+## WEEK 1
+
+### PRACTICAL 2
+
+**The “Nottem” dataset is available in the R library and contains historical time series observations. Using this dataset, perform the following tasks:**
+
+(a) Write the R command to load the library in which the “Nottem” dataset is available.
+
+(b) Write the R command to load the “Nottem” dataset into the R working environment.
+
+(c) Write the appropriate R command to view the description of the dataset and briefly explain the key characteristics of the data.
+
+(d) Explain the nature of the data in terms of its sampling frequency.
+
+(e) Plot the time series data and write your observations about the pattern of the data.
+
+### OBJECTIVE
+
+The objective of this analysis is to load the Nottem dataset from the R environment, examine its structure and characteristics, and apply basic time series analysis techniques. The dataset is explored using descriptive commands to understand its frequency and properties, followed by graphical visualization to identify dominant components such as trend, seasonality, and overall behavior of the time series.
+
+### R - CODE
+
+```{r}
+# Command to delete all the R history
+rm(list=ls(all=TRUE))
+```
+
+```{r}
+# Loading all the required libraries
+library(datasets)
+```
+
+```{r}
+# Loading the Nottem dataset in R working environment
+data("nottem")
+nottem
+```
+
+```{r}
+# Command to view the description of the dataset
+?nottem
+# The Nottem dataset contains monthly average air temperature observations recorded at Nottingham Castle from 1920 to 1939.
+# It is measured in degrees Fahrenheit and stored as a time series object.
+# The data shows a strong seasonal pattern with recurring yearly cycles.
+# It does not exhibit a significant long-term trend.
+```
+
+```{r}
+# Finding the frequency of the data
+frequency(nottem)
+# The sampling frequency of the Nottem dataset is 12, indicating that observations are recorded monthly
+# Therefore, the data represents a monthly time series with yearly seasonal cycles.
+```
+
+```{r}
+# Plotting the graph
+plot(nottem,
+     main="Monthly Air Temperatures at Nottingham Castle",
+     xlab= "Year",
+     ylab= "Temperature(°F)",
+     col= "blue",
+     lwd=2)
+```
+
+### OBSERVATION
+
+-   **Successful Data Import and Preparation**\
+    The Nottem dataset was successfully loaded into the R environment using the datasets library. The data is stored as a time series (`ts`) object, allowing direct application of time series analysis functions. The dataset contains monthly average air temperature observations recorded at Nottingham Castle.
+
+-   **Nature and Frequency of the Time Series**\
+    The frequency of the dataset is 12, indicating that the observations are recorded on a monthly basis. This classifies the data as a seasonal time series where patterns are expected to repeat every 12 observations (one year).
+
+-   **Seasonal Pattern Analysis**\
+    The time series plot reveals a strong and regular seasonal pattern. Temperature values increase during warmer months and decrease during colder months, showing consistent yearly cycles. Peaks and troughs occur at approximately the same intervals each year, confirming strong seasonality.
+
+-   **Trend Analysis**\
+    There is no clear long-term upward or downward trend observed across the time period. The average temperature level remains relatively stable, suggesting the absence of a strong trend component.
+
+-   **Dominant Component**\
+    The seasonal component is the dominant feature of the dataset. Variations primarily follow annual cycles rather than long-term structural changes. The variability appears consistent over time, indicating relatively stable variance.
+
+### CONCLUSION
+
+The Nottem dataset represents a monthly seasonal time series with a strong recurring annual pattern in temperature values. The primary characteristic of the data is pronounced seasonality, while long-term trend effects are minimal. The dataset is suitable for seasonal time series analysis and forecasting methods that account for periodic behavior.

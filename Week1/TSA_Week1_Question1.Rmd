@@ -1,5 +1,5 @@
 ---
-title: "SumanthKamath_230957214_TSA_Lab_Week1_PracticeQuestion1"
+title: "TSA_Week1_PracticeQuestion1"
 author: "Sumanth Kamath"
 date: "2026-01-24"
 output:

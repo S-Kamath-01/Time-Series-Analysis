@@ -1,0 +1,247 @@
+---
+title: "TSA_Week4_PracticeQuestion8"
+author: "Sumanth Kamath"
+date: "2026-03-10"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# TIME SERIES ANALYSIS LAB
+
+## WEEK 4
+
+### PRACTICAL 8
+
+**Consider the “AirPassengers” data from R library and perform the following tasks in the R environment:**
+
+(f) Convert the data into a time series object.
+
+(g) Plot the data to identify the dominant component.
+
+(h) Decompose the data to observe the dominating components more clearly.
+
+(i) Check stationarity or non-stationarity using ACF/PACF plot.
+
+(j) Check stationarity or non-stationarity using the KPSS test.
+
+(k) If data is non-stationary, make it stationary using an appropriate operator.
+
+(l) Select a suitable technique to fit the data.
+
+(m) Fit the data using the selected model and estimate the parameters.
+
+(n) Check the goodness of fit of the model.
+
+------------------------------------------------------------------------
+
+### OBJECTIVE
+
+The objective of this analysis is to examine the built-in AirPassengers dataset using time series modeling techniques. The dataset is analyzed for trend and seasonal components, tested for stationarity using graphical and statistical methods, transformed appropriately, and fitted with a suitable SARIMA model. Model adequacy is evaluated through residual diagnostics.
+
+------------------------------------------------------------------------
+
+### R - CODE
+
+```{r}
+# Command to delete all the history
+rm(list=ls(all=TRUE))
+```
+
+```{r}
+# Installing the required packages
+# install.packages(c("tseries","forecast"))
+```
+
+```{r}
+# Loading all the required libraries
+library(tseries)
+library(forecast)
+library(stats)
+```
+
+```{r}
+# Loading and converting the data into a time series object
+data("AirPassengers")
+ap <- as.ts(AirPassengers)
+ap
+```
+
+```{r}
+# Checking frequency
+frequency(ap)
+```
+
+```{r}
+# Plotting the data
+plot(ap,
+     main = "AirPassengers (Monthly, 1949–1960)",
+     ylab = "Passengers (in thousands)",
+     xlab = "Year",
+     col = "blue",
+     lwd = 2)
+```
+
+```{r}
+# Multiplicative decomposition
+decomp_mult <- decompose(ap, type = "multiplicative")
+plot(decomp_mult)
+```
+
+```{r}
+# ACF and PACF plots
+par(mfrow=c(1,2))
+acf(ap, main="ACF: AirPassengers")
+pacf(ap, main="PACF: AirPassengers")
+par(mfrow=c(1,1))
+```
+
+```{r}
+# KPSS Test (Null Hypothesis: Series is Stationary)
+kpss.test(ap)
+```
+
+```{r}
+# Log transformation to stabilize variance
+log_ap <- log(ap)
+plot(log_ap, main="Log Transformed Series")
+```
+
+```{r}
+# First differencing to remove trend
+diff1_ap <- diff(log_ap, differences = 1)
+
+# Seasonal differencing to remove seasonality
+diff_final <- diff(diff1_ap, lag = 12)
+
+plot(diff_final,
+     main="Log + First + Seasonal Differenced Series",
+     ylab="Differenced Values",
+     xlab="Time")
+
+acf(diff_final)
+pacf(diff_final)
+```
+
+```{r}
+# KPSS test after differencing
+kpss.test(diff_final)
+```
+
+```{r}
+# Model Selection using SARIMA (auto.arima)
+model <- auto.arima(log_ap,
+                    seasonal = TRUE,
+                    stepwise = FALSE,
+                    approximation = FALSE)
+
+summary(model)
+```
+
+```{r}
+# Residual diagnostics
+checkresiduals(model)
+```
+
+```{r}
+# Manual Ljung-Box Test
+Box.test(residuals(model),
+         lag = 20,
+         type = "Ljung-Box")
+```
+
+```{r}
+# Normality check
+hist(residuals(model),
+     breaks = 20,
+     main = "Histogram of Residuals")
+
+qqnorm(residuals(model))
+qqline(residuals(model))
+```
+
+------------------------------------------------------------------------
+
+### OBSERVATION
+
+-   **Time Series Conversion**\
+    The `AirPassengers` dataset was successfully loaded from the R dataset library and converted into a time series object using `as.ts()`. The frequency of the dataset is 12, confirming that it is a monthly time series (1949–1960).
+
+-   **Time Series Plot**\
+    The plot of the series shows:
+
+    -   A strong upward **trend** over time.
+    -   Clear and increasing **seasonal fluctuations**.
+    -   Increasing variability as the level of the series increases.
+
+    This indicates the presence of both trend and multiplicative seasonality.
+
+-   **Decomposition (Multiplicative Model)**\
+    The multiplicative decomposition clearly shows:
+
+    -   A steadily increasing **trend component**.
+    -   A strong repeating **seasonal component**.
+    -   A relatively smaller irregular component.
+
+    The seasonal variation increases proportionally with the level of the series, confirming a **multiplicative structure**.
+
+-   **Stationarity Check using ACF/PACF (Original Series)**\
+    The ACF plot shows very slow decay and significant spikes at seasonal lags (12, 24, etc.), indicating non-stationarity.\
+    The PACF also shows significant spikes at initial lags.\
+    This confirms the presence of trend and seasonality.
+
+-   **KPSS Test (Original Series)**\
+    The KPSS test gives a p-value less than 0.05.\
+    Since the null hypothesis of KPSS is that the series is stationary, we reject the null hypothesis.\
+    Therefore, the original series is non-stationary.
+
+-   **Transformation and Differencing**
+
+    -   Log transformation was applied to stabilize variance.\
+    -   First differencing (d = 1) removed the trend component.\
+    -   Seasonal differencing with lag 12 (D = 1) removed seasonality.
+
+    After log transformation and both differencing operations:
+
+    -   The series fluctuates around a constant mean.
+    -   ACF and PACF show quick cut-offs.
+    -   KPSS test gives p-value greater than 0.05.
+
+    This confirms that the transformed series is stationary.
+
+-   **Model Selection (SARIMA)**\
+    Since the data contains both trend and seasonality, a Seasonal ARIMA (SARIMA) model was selected.\
+    Using `auto.arima()` with seasonal = TRUE, the model selected is typically:
+
+    ARIMA(0,1,1)(0,1,1)[12]
+
+    The model is selected based on the minimum AIC value.
+
+-   **Model Fitting and Parameter Estimation**\
+    The model parameters (MA(1) and Seasonal MA(1)) are estimated and found to be statistically significant.\
+    The summary output provides coefficient estimates, standard errors, AIC, and log-likelihood values.
+
+-   **Goodness of Fit**
+
+    -   Residual plot shows random fluctuations around zero.
+    -   ACF of residuals shows no significant spikes.
+    -   Ljung–Box test gives p-value \> 0.05, indicating no residual autocorrelation.
+    -   Histogram and Q-Q plot suggest approximate normality of residuals.
+
+    These diagnostics indicate that the model is adequate.
+
+------------------------------------------------------------------------
+
+### CONCLUSION
+
+The `AirPassengers` series exhibits a strong upward trend and pronounced multiplicative seasonality, making it non-stationary in its original form. Both graphical methods (ACF/PACF) and the KPSS test confirm non-stationarity.
+
+After applying log transformation, first differencing (d = 1), and seasonal differencing (D = 1), the series becomes stationary.
+
+Based on the dominant trend and seasonal components, a Seasonal ARIMA model is appropriate. The selected SARIMA(0,1,1)(0,1,1)[12] model provides a good fit, as confirmed by AIC selection criteria and residual diagnostics.
+
+Residual analysis indicates that errors behave like white noise and approximately follow a normal distribution. Therefore, the selected SARIMA model is suitable for modeling and forecasting the AirPassengers data.

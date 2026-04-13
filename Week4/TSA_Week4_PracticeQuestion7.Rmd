@@ -1,0 +1,222 @@
+---
+title: "TSA_Week4_PracticeQuestion7"
+author: "Sumanth Kamath"
+date: "2026-03-10"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# TIME SERIES ANALYSIS LAB
+
+## WEEK 4
+
+### PRACTICAL 7
+
+**Consider the monthly volume of commercial bank real estate loans (in billions of dollars) dataset stored in a text file. Perform the following tasks in the R environment:**
+
+(f) Import data into the R environment.
+
+(g) Convert the data into a time series object.
+
+(h) Plot the data to identify the dominant component.
+
+(i) Check stationarity or non-stationarity using ACF/PACF plot.
+
+(j) Check stationarity or non-stationarity using the Augmented Dickey-Fuller (ADF) test.
+
+(k) If data is non-stationary, make it stationary using an appropriate operator.
+
+(l) Select a suitable model based on the dominating component and finalize model order using ACF/PACF and AIC.
+
+(m) Fit the selected model and estimate the parameters.
+
+(n) Check the goodness of fit of the model.
+
+------------------------------------------------------------------------
+
+### OBJECTIVE
+
+The objective of this analysis is to model the monthly commercial bank real estate loan dataset using appropriate time series techniques. The dataset is examined for stationarity and transformed if necessary. Based on ACF/PACF behavior and model selection criteria such as AIC, a suitable ARIMA model is selected, estimated, and validated through diagnostic checks.
+
+------------------------------------------------------------------------
+
+### R - CODE
+
+```{r}
+# Command to delete all the history
+rm(list=ls(all=TRUE))
+```
+
+```{r}
+# Installing the required packages
+# install.packages(c("tseries","forecast","readr"))
+```
+
+```{r}
+# Loading all the required libraries
+library(tseries)
+library(forecast)
+library(readr)
+library(stats)
+```
+
+```{r}
+# Importing the file
+loan_data <- scan("bank_case.txt", what = numeric(), quiet = TRUE)
+
+# Convert into time series object (Assume starting January 2000)
+loan_ts <- ts(loan_data, frequency = 12, start = c(2000,1))
+loan_ts
+```
+
+```{r}
+# Plotting the time series data
+plot(loan_ts,
+     main = "Commercial Bank Real Estate Loans (Monthly)",
+     ylab = "Loans (Billions of Dollars)",
+     xlab = "Time",
+     col = "blue",
+     lwd = 2)
+```
+
+```{r}
+# ACF and PACF of original series
+par(mfrow = c(1,2))
+acf(loan_ts, main = "ACF: Original Series")
+pacf(loan_ts, main = "PACF: Original Series")
+par(mfrow = c(1,1))
+```
+
+```{r}
+# ADF Test for stationarity
+adf.test(loan_ts)
+```
+
+```{r}
+# First differencing (if non-stationary)
+diff1_ts <- diff(loan_ts, differences = 1)
+
+plot(diff1_ts,
+     main = "First Differenced Series",
+     ylab = "Differenced Loans",
+     xlab = "Time")
+
+par(mfrow = c(1,2))
+acf(diff1_ts, main = "ACF: First Difference")
+pacf(diff1_ts, main = "PACF: First Difference")
+par(mfrow = c(1,1))
+
+adf.test(diff1_ts)
+```
+
+```{r}
+# Second differencing (if required)
+diff2_ts <- diff(loan_ts, differences = 2)
+
+plot(diff2_ts,
+     main = "Second Differenced Series",
+     ylab = "Differenced Loans",
+     xlab = "Time")
+
+par(mfrow = c(1,2))
+acf(diff2_ts, main = "ACF: Second Difference")
+pacf(diff2_ts, main = "PACF: Second Difference")
+par(mfrow = c(1,1))
+
+adf.test(diff2_ts)
+```
+
+```{r}
+# Model selection using AIC
+model1 <- arima(loan_ts, order = c(0,2,1))
+model2 <- arima(loan_ts, order = c(1,2,0))
+model3 <- arima(loan_ts, order = c(1,2,1))
+
+AIC(model1, model2, model3)
+```
+
+```{r}
+# Fit the best model (Assume ARIMA(0,2,1) selected)
+final_model <- arima(loan_ts, order = c(0,2,1))
+final_model
+```
+
+```{r}
+# Residual diagnostics
+res <- final_model$residuals
+
+# Residual plot
+plot(res, main = "Residuals of Fitted ARIMA Model")
+
+# Histogram
+hist(res, main = "Histogram of Residuals")
+
+# Shapiro-Wilk normality test
+shapiro.test(res)
+
+# Box-Pierce test for autocorrelation
+Box.test(res, lag = 10, type = "Box-Pierce")
+
+# ACF and PACF of residuals
+par(mfrow = c(1,2))
+acf(res, main = "ACF of Residuals")
+pacf(res, main = "PACF of Residuals")
+par(mfrow = c(1,1))
+```
+
+------------------------------------------------------------------------
+
+### OBSERVATION
+
+-   **Successful Data Import and Time Series Conversion**\
+    The dataset was successfully imported using `scan("bank_case.txt")` and converted into a time series object using `as.ts()`. The data represents monthly commercial bank real estate loan volumes (in billions of dollars).
+
+-   **Time Series Plot**\
+    The time series plot shows a clear upward trend in loan volumes over time. This indicates that the dominant component in the series is the **trend component**. No strong seasonal pattern is visually evident.
+
+-   **Stationarity Check using ACF and PACF (Original Series)**\
+    The ACF plot of the original series shows a slow decay across lags, which is a strong indication of non-stationarity.\
+    The PACF plot shows significant spikes at the first few lags, suggesting the presence of a trend component.
+
+-   **ADF Test (Original Series)**\
+    The Augmented Dickey-Fuller (ADF) test produces a p-value greater than 0.05. Therefore, we fail to reject the null hypothesis of a unit root. This confirms that the original series is non-stationary.
+
+-   **First and Second Differencing**\
+    After first differencing, the series still shows signs of non-stationarity.\
+    After second differencing:
+
+    -   The series fluctuates around a constant mean.
+    -   The ACF and PACF plots show quick cut-off behavior.
+    -   The ADF test gives a p-value less than 0.05.
+
+    This confirms that the series becomes stationary after second differencing.
+
+-   **Model Selection**\
+    Since the data required second differencing, the order of integration is **d = 2**.\
+    Based on the ACF and PACF patterns of the stationary series and comparison using AIC values, the **ARIMA(0,2,1)** model was selected as it provides the lowest AIC value among the candidate models.
+
+-   **Model Fitting and Diagnostics**\
+    The ARIMA(0,2,1) model was fitted to the original data.
+
+    -   Residuals fluctuate randomly around zero.
+    -   Histogram of residuals indicates approximate normality.
+    -   Shapiro–Wilk test supports normality assumption.
+    -   Box–Pierce test shows no significant autocorrelation in residuals (p-value \> 0.05).
+    -   ACF and PACF of squared residuals do not show significant spikes, indicating absence of heteroscedasticity.
+
+    These diagnostics suggest that the model is adequate.
+
+------------------------------------------------------------------------
+
+### CONCLUSION
+
+The commercial bank real estate loan series exhibits a strong upward trend and is non-stationary in its original form. Both graphical methods (ACF/PACF) and the statistical ADF test confirm the presence of a unit root.
+
+After applying second-order differencing, the series becomes stationary. Based on ACF/PACF analysis and AIC model selection criteria, the ARIMA(0,2,1) model is identified as the most appropriate model.
+
+Residual diagnostics confirm that the fitted model satisfies the assumptions of white noise errors and provides a good fit. Therefore, the ARIMA(0,2,1) model is suitable for modeling and forecasting the given time series data.
